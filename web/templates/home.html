@@ -1,0 +1,59 @@
+<html>
+<head>
+</head>
+<body>
+	<h1>Welcome {{username}}</h1> 
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+	.photo_gallery{
+		max-width: 2000px;
+		margin: auto;
+		overflow: auto;
+	}
+	.photo{
+		width: 400px;
+		height: 300px;
+		margin: 5px;
+		border: 1px solid black;
+		float: left;
+		overflow: hidden;
+		/* width: 390px; */
+	}
+	.photo img{
+		width: 400px;
+		height: auto;
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+</style>
+
+<title>3D Warehouse HomePage</title>
+    <h1>Upload new Model</h1>
+    <form method=post enctype=multipart/form-data>
+	  <p>Photo: <input type=file name=photo></p>
+	  <p>Model: <input type=file name=model></p>
+         <input type=submit value=Upload>
+	</form>
+	<div class="photo_gallery">
+		{% for line in models %}
+		<a href="http://127.0.0.1:5000/models/{{line.modelName}}">
+		<div class="photo">
+			<img src="http://127.0.0.1:5000/uploads/{{line.photoName}}" alt="">
+		</div>
+		</a>
+		{% endfor %}
+
+	</div>
+
+
+
+
+
+</body>
+
+
+</html>
