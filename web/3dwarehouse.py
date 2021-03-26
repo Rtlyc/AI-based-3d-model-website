@@ -5,8 +5,9 @@ from werkzeug.utils import secure_filename
 
 #Initialize the app from Flask
 app = Flask(__name__)
-SCRIPT_FOLDER = '/Users/yuchen/Nyu/Guided Studies/scripts'
-UPLOAD_FOLDER = '/Users/yuchen/Nyu/Guided Studies/photos'
+dir_path = os.path.dirname(os.path.realpath(__file__))
+SCRIPT_FOLDER = dir_path + '/scripts'
+UPLOAD_FOLDER = dir_path + '/photos'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SCRIPT_FOLDER'] = SCRIPT_FOLDER
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'obj'])
@@ -18,9 +19,9 @@ def allowed_file(filename):
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
-                       port = 8889,
-                       user='root',
-                       password="root",
+                       port = 3306,
+                       user='ycl',
+                       password="thisisycl",
                        db='3dwarehouse',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
