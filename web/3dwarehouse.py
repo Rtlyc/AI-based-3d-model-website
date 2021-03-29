@@ -1,16 +1,19 @@
 from flask import Flask, render_template, request, session, url_for, redirect, send_from_directory, jsonify
 import pymysql.cursors
 import os
+import collections
 from werkzeug.utils import secure_filename
 
 #Initialize the app from Flask
 app = Flask(__name__)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_FOLDER = dir_path + '/scripts'
-UPLOAD_FOLDER = dir_path + '/photos'
+# UPLOAD_FOLDER = dir_path + '/photos'
+UPLOAD_FOLDER = "/data2/ABC2/data_raw_clustering/gif_and_obj/"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SCRIPT_FOLDER'] = SCRIPT_FOLDER
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'obj'])
+MODEL_DICTIONARY = collections.defaultdict()
 
 
 def allowed_file(filename):
@@ -45,6 +48,9 @@ def hello():
     cursor.execute(query)
     models = cursor.fetchall()
     cursor.close()
+    for model in models:
+        MODEL_DICTIONARY[str(model['pID'])] = (model['photoName'],model['modelName'])
+    # print(MODEL_DICTIONARY)
     return render_template('test.html')
     return render_template('tree.html',models=models)
 
@@ -151,7 +157,7 @@ def home():
             model.save(filepath)
 
 
-            query = 'INSERT INTO photo (pId, username, photoName, modelName) VALUES(%s, %s, %s, %s)'
+            query = 'INSERT INTO Photo (pId, username, photoName, modelName) VALUES(%s, %s, %s, %s)'
             cursor.execute(query, (pid, username, photoName, modelName))
             conn.commit()
             cursor.close()
@@ -161,15 +167,31 @@ def home():
     return render_template('home.html', username=username, models=models)
 
 
-@app.route('/uploads/<photoName>')
-def uploaded_photo(photoName):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],photoName)
+# @app.route('/uploads/<photoName>')
+# def uploaded_photo(photoName):
+#     return send_from_directory(app.config['UPLOAD_FOLDER'],photoName)
+
+@app.route('/uploads/photo/<id>')
+def uploaded_photo(id):
+    directory = (8-len(id))*'0'+id
+    curdir = os.path.join(app.config["UPLOAD_FOLDER"],directory)
+    photoName = MODEL_DICTIONARY[id][0]
+    return send_from_directory(curdir,photoName)
 
 
-@app.route('/models/<modelName>')
-def uploaded_model(modelName):
-    send_from_directory(app.config['UPLOAD_FOLDER'],modelName)
-    return render_template('3d.html',modelName=modelName)
+@app.route('/uploads/model/<id>')
+def uploaded_model(id):
+    directory = (8-len(id))*'0'+id
+    curdir = os.path.join(app.config["UPLOAD_FOLDER"],directory)
+    modelName = MODEL_DICTIONARY[id][1]
+    print(modelName)
+    return send_from_directory(curdir,modelName)
+
+
+@app.route('/models/<id>')
+def model_display(id):
+    # send_from_directory(app.config['UPLOAD_FOLDER'],modelName)
+    return render_template('3d.html',id=id)
     # return redirect(url_for('3d',modelName=modelName))
 
 @app.route('/scripts/<script>')
@@ -194,11 +216,11 @@ def change_data(photoID):
 
     data = {
     "svg":
-            '<g class="centerPerson"><a href="http://127.0.0.1:5000/models/'+root['modelName']+'"><path d="M38.9,40h-79.4c-21.2,0-38.3-17.2-38.3-38.3v0c0-21.2,17.2-38.3,38.3-38.3h79.4c21.2,0,38.3,17.2,38.3,38.3v0C77.2,22.8,60,40,38.9,40z"/><g style="clip-path: circle(30px at 50% 50%);"><rect x="-73" y="-38" width="66" height="80" style="background-color: #586577;"/><image style="overflow:visible;" x="-73" y="-38" width="66" height="80" xlink:href="http://127.0.0.1:5000/uploads/'+root['photoName']+'"></image></g><text dominant-baseline="central">Car1</text></a></g>',
+            '<g class="centerPerson"><a href="http://127.0.0.1:5000/models/'+str(root['pID'])+'"><path d="M38.9,40h-79.4c-21.2,0-38.3-17.2-38.3-38.3v0c0-21.2,17.2-38.3,38.3-38.3h79.4c21.2,0,38.3,17.2,38.3,38.3v0C77.2,22.8,60,40,38.9,40z"/><g style="clip-path: circle(30px at 50% 50%);"><rect x="-73" y="-38" width="66" height="80" style="background-color: #586577;"/><image style="overflow:visible;" x="-73" y="-38" width="66" height="80" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(root['pID'])+'"></image></g><text dominant-baseline="central">Car1</text></a></g>',
         "children": [
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[0]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[0]['photoName']+'"></image></g><text>Car2</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[0]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[0]['pID'])+'"></image></g><text>Car2</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -219,7 +241,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[1]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[1]['photoName']+'"></image></g><text>Car6</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[1]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[1]['pID'])+'"></image></g><text>Car6</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -240,7 +262,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[2]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[2]['photoName']+'"></image></g><text>Car10</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[2]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[2]['pID'])+'"></image></g><text>Car10</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -261,7 +283,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[3]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[3]['photoName']+'"></image></g><text>Car14</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[3]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[3]['pID'])+'"></image></g><text>Car14</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -282,7 +304,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[4]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[4]['photoName']+'"></image></g><text>Car18</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[4]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[4]['pID'])+'"></image></g><text>Car18</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -303,7 +325,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[5]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[5]['photoName']+'"></image></g><text>Car22</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[5]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[5]['pID'])+'"></image></g><text>Car22</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -324,7 +346,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[6]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[6]['photoName']+'"></image></g><text>Car26</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[6]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[6]['pID'])+'"></image></g><text>Car26</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -345,7 +367,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[7]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[7]['photoName']+'"></image></g><text>Car30</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[7]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[7]['pID'])+'"></image></g><text>Car30</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -366,7 +388,7 @@ def change_data(photoID):
             },
             {
                 "svg":
-                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[8]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/'+children[8]['photoName']+'"></image></g><text>Car34</text></a></g>',
+                    '<g class="relativePerson"><a href="http://127.0.0.1:5000/tree/'+str(children[8]['pID'])+'"><path d="M28,26h-57.4c-15.3,0-27.7-12.4-27.7-27.7v0c0-15.3,12.4-27.7,27.7-27.7h57.4c15.3,0,27.7,12.4,27.7,27.7v0C55.7,13.6,43.3,26,28,26z"/><g style="clip-path: circle(22px at 50% 50%);"><rect x="-56" y="-32" width="52" height="60" style="background-color: #586577;"/><image style="overflow:visible;" x="-56" y="-32" width="52" height="60" xlink:href="http://127.0.0.1:5000/uploads/photo/'+str(children[8]['pID'])+'"></image></g><text>Car34</text></a></g>',
                 "children": [
                     {
                         "svg":
@@ -413,8 +435,8 @@ def xy_data():
         data.append({
             'x': random.randrange(100,900),
             'y': random.randrange(100,900),
-            'img': "http://127.0.0.1:5000/uploads/"+element['photoName'],
-            'link': "http://127.0.0.1:5000/models/"+element['modelName'],
+            'img': "http://127.0.0.1:5000/uploads/photo/"+str(element['pID']),
+            'link': "http://127.0.0.1:5000/models/"+str(element['pID']),
         })
     return jsonify(data)
 
