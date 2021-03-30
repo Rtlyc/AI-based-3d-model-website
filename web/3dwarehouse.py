@@ -433,8 +433,8 @@ def xy_data():
     data = []
     for element in models:
         data.append({
-            'x': random.randrange(100,900),
-            'y': random.randrange(100,900),
+            'x': random.randrange(-1000,1000),
+            'y': random.randrange(-1000,1000),
             'img': "http://127.0.0.1:5000/uploads/photo/"+str(element['pID']),
             'link': "http://127.0.0.1:5000/models/"+str(element['pID']),
         })

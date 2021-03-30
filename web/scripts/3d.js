@@ -72,7 +72,7 @@ function main() {
     const modelName = document.getElementById("modelName").value;
     console.log(modelName);
     console.log(1234123);
-    objLoader.load('http://127.0.0.1:5000/uploads/'+modelName, (root) => {
+    objLoader.load('http://127.0.0.1:5000/uploads/model/'+modelName, (root) => {
         // console.log(root.scale);
         root.scale.set(0.1,0.1,0.1);
         root.position.set(0,5,0);
