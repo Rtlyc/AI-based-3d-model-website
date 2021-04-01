@@ -51,7 +51,7 @@ def hello():
     for model in models:
         MODEL_DICTIONARY[str(model['pID'])] = (model['photoName'],model['modelName'])
     # print(MODEL_DICTIONARY)
-    return render_template('test.html')
+    return render_template('test1.html')
     return render_template('tree.html',models=models)
 
     return render_template('index.html')
@@ -415,6 +415,22 @@ def change_data(photoID):
 def data_get(photoID):
     print("data_get:"+photoID)
     return jsonify(change_data(photoID))
+
+@app.route('/neighbors/<photoID>')
+def get_neighbor(photoID):
+    query = "SELECT * FROM Photo WHERE pID=%s"
+    cursor = conn.cursor()
+    cursor.execute(query,(photoID))
+    neighbors = []
+    neighbors.append(cursor.fetchone())
+
+    query = "SELECT * FROM Photo ORDER BY RAND() LIMIT 9"
+    cursor.execute(query)
+    children = cursor.fetchall()
+    neighbors.extend(children)
+    cursor.close()
+    return jsonify(neighbors)
+    
 
 @app.route('/tree/<photoID>')
 def displayed_tree(photoID):
