@@ -88,7 +88,7 @@ function main() {
     //   objLoader.load('https://threejsfundamentals.org/threejs/resources/models/windmill/windmill.obj', (root) => {
     //     scene.add(root);
     //   });
-    objLoader.load('http://127.0.0.1:5000/uploads/model/{{id}}', (root) => {
+    objLoader.load('/uploads/model/{{id}}', (root) => {
         // console.log(root.scale);
         root.scale.set(0.1,0.1,0.1);
         root.position.set(0,5,0);

@@ -40,9 +40,9 @@
 	</form>
 	<div class="photo_gallery">
 		{% for line in models %}
-		<a href="http://127.0.0.1:5000/models/{{line.modelName}}">
+		<a href="/models/{{line.modelName}}">
 		<div class="photo">
-			<img src="http://127.0.0.1:5000/uploads/{{line.photoName}}" alt="">
+			<img src="/uploads/{{line.photoName}}" alt="">
 		</div>
 		</a>
 		{% endfor %}

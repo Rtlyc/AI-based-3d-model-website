@@ -9,12 +9,9 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="section">
-            <div class="chartArea" id="target">
-
-            </div>
-        </div>
+    <div id="chart-container">
+        <div id="chart"></div>
+        <div id="loading"><span>loading...</span></div>
     </div>
 
     <style>
@@ -37,94 +34,60 @@
         }
     </style>
 
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="http://threejs.org/build/three.min.js"></script>
-    <script>
+    <script src="//unpkg.com/babel-polyfill@6.26.0/dist/polyfill.js"></script>
+    <script src="//unpkg.com/custom-event-polyfill@0.3.0/custom-event-polyfill.js"></script>
+    <script
+        src="//cdnjs.cloudflare.com/ajax/libs/document-register-element/1.8.0/document-register-element.js"></script>
 
-    (async function(){
+    <script src="//unpkg.com/d3@5.15.0/dist/d3.min.js"></script>
+    <script src="//unpkg.com/d3fc@14.2.3/build/d3fc.js"></script>
+    <script src="//unpkg.com/d3-svg-annotation@2.5.1/indexRollup.js"></script>
+    <script type="module">
+        import { seriesSvgAnnotation } from "/scripts/annotation-series.js";
+        import { webglColor } from "/scripts/util.js";
+        // (async function () {
 
-    // const url = document.URL;
-    // const startind = url.lastIndexOf('/')+1
-    // let id = document.URL.substring(startind,url.length);
+        //     // const url = document.URL;
+        //     // const startind = url.lastIndexOf('/')+1
+        //     // let id = document.URL.substring(startind,url.length);
 
-    let data;
-    let id = 49993;
-    var response = await 
-    fetch(`/neighbors/${id}`).then(function(response){
-        return response.json();
-    }).then(function(json){
-        data = json;
-    })
-    console.log(data)})()
-    
+        //     let rawdata;
+        //     let id = 49993;
+        //     var response = await
+        //         fetch(`/neighbors/${id}`).then(function (response) {
+        //             return response.json();
+        //         }).then(function (json) {
+        //             rawdata = json;
+        //         })
 
-        // const viz_height = 667.8;
-        // const points_radius = 30;
-        // const width = 1000;
-        // const height = 1000;
-        // const chartArea = d3.select(".container");
-        // const svg = chartArea
-        //     .selectAll("#target")
-        //     .append("svg")
-        //     .style("width", width)
-        //     .style("height", height);
-        // const g = svg.append("g");
-        // const camera = new THREE.PerspectiveCamera(90, width / viz_height, 1, 1000);
-        // const renderer = new THREE.WebGLRenderer({ antialias: true, g });
-        // renderer.setSize(width, viz_height);
-        // renderer.setPixelRatio(devicePixelRatio);
+        //     //////////////
 
-        // function zoomEvent(zoom) {
-        //     let canvas_inputs = {}
-        //     const scale = zoom.k;
-        //     camera.position.x = -(zoom.x - width / 2) / scale;
-        //     camera.position.y = (zoom.y - viz_height / 2) / scale;
-        //     camera.position.z = get_camera_z(Math.log(scale));
-        //     camera.fov = needed_fov(viz_height, camera.position.z, scale)
+        const data = fc.randomFinancial()(50);
 
-        //     // future compatibility
-        //     camera.near_plane = 1//camera.position.z * 2 // + near_year/1000
-        //     camera.far_plane = 10000//camera.position.z / 2//camera.position.z + far_year/1000
+const yExtent = fc.extentLinear().accessors([d => d.high, d => d.low]);
 
-        //     camera.updateProjectionMatrix()
-        //     renderer.render(scene, camera);
+const xExtent = fc.extentDate().accessors([d => d.date]);
 
-        //     canvas_inputs.k = scale
-        //     canvas_inputs.x = camera.position.x
-        //     canvas_inputs.y = camera.position.y
-        //     canvas_inputs.z = camera.position.z
-        //     canvas_inputs.fov = camera.fov
-        //     canvas_inputs.near_plane = camera.near_plane
-        //     canvas_inputs.far_plane = camera.far_plane
+const gridlines = fc.annotationSvgGridline();
+const candlestick = fc.seriesSvgCandlestick();
+const multi = fc.seriesSvgMulti().series([gridlines, candlestick]);
 
-        //     drawCamera(canvas_inputs)
+const chart = fc
+    .chartCartesian(d3.scaleTime(), d3.scaleLinear())
+    .yDomain(yExtent(data))
+    .xDomain(xExtent(data))
+    .svgPlotArea(multi);
 
-        //     return canvas_inputs
-        // }
+d3.select('#chart')
+    .datum(data)
+    .call(chart);
+        ////////////
 
-        // const point_size = 2;
-        // const point_size_adjuster = 0.85;
-        // pointsMaterial = new THREE.PointsMaterial({
-        //     size: point_size * point_size_adjuster,
-        //     sizeAttenuation: 
-        // })
-        // {
-        //     let point_size_adjuster = 1
-        //     if (binary == "Semantic zoom") {
-        //         point_size_adjuster = 2
-        //     } else if (binary == "Geometric zoom") {
-        //         point_size_adjuster = 0.25 
-        //     } else if (binary == "Balanced zoom") {
-        //         point_size_adjuster = 0.85 
-        //     }
-        //     return new THREE.PointsMaterial({
-        //         size: point_size * point_size_adjuster,
-        //         sizeAttenuation: sizeAttenuation,
-        //         vertexColors: THREE.VertexColors,
-        //         map: circle_sprite,
-        //         transparent: true
-        //     })
-        //     }
+
+        console.log("DONE");
+
+        // })()
+
     </script>
 
 </body>
