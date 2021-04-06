@@ -67,15 +67,16 @@
                 .attr("r", 2);
 
             const format = d3.format('.0f');
+            let radius = 5;
             const labels = g.selectAll("label")
                 .data(data)
                 .join("image")
                 // .join("text")
-                .attr("x", (a) => a.x - 5)
-                .attr("y", (a) => a.y - 5)
+                .attr("x", (a) => a.x-radius/2)
+                .attr("y", (a) => a.y-radius/2)
                 // .attr("xlink:href", (a) => a.img)
-                .attr("width", 10)
-                .attr("height", 10)
+                .attr("width", radius)
+                .attr("height", radius)
                 // .style("display", "none")
                 // .text(d => "x:"+d.x+" y:"+d.y)
                 .on("click", (d, a) => window.location = a.link);
@@ -89,7 +90,7 @@
 
             svg.call(d3.zoom()
                 .extent([[0, 0], [width, height]])
-                .scaleExtent([0.2, 8])
+                .scaleExtent([0.2, 10])
                 .on("zoom", zoomed));
 
             function zoomed(event) {
