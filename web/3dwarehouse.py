@@ -4,6 +4,7 @@ import os
 import collections
 from werkzeug.utils import secure_filename
 
+
 #Initialize the app from Flask
 app = Flask(__name__)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -51,7 +52,7 @@ def hello():
     for model in models:
         MODEL_DICTIONARY[str(model['pID'])] = (model['photoName'],model['modelName'])
     # print(MODEL_DICTIONARY)
-    return render_template('test.html')
+    return render_template('test1.html')
     return render_template('tree.html',models=models)
 
     return render_template('index.html')
@@ -166,10 +167,6 @@ def home():
             return redirect(url_for('home', username=username, models=models))
     return render_template('home.html', username=username, models=models)
 
-
-# @app.route('/uploads/<photoName>')
-# def uploaded_photo(photoName):
-#     return send_from_directory(app.config['UPLOAD_FOLDER'],photoName)
 
 @app.route('/uploads/photo/<id>')
 def uploaded_photo(id):
@@ -462,9 +459,10 @@ app.secret_key = 'some key that you will never guess'
 
 
 #Run the app on localhost port 5000
-#debug = True -> you don't have to restart flask
+#debug = True -> you don't have to restart flask 128.122.136.136
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
+    # app.run('128.122.136.136', 5000, debug = True)
     app.run('127.0.0.1', 5000, debug = True)
 
 print("hello world")
